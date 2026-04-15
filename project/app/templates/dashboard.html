@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .scroll-container {
+        max-height: 600px;
+        overflow-y: auto;
+        overflow-x: auto;
+        display: block;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+    }
+
+    table {
+        min-width: 1200px;
+        table-layout: auto;
+        font-size: 1.1rem;
+        background-color: white;
+    }
+
+    thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: #343a40 !important;
+        color: #fff !important;
+        white-space: nowrap;
+        padding: 14px 20px;
+        font-size: 1.2rem;
+    }
+
+    tbody td, tfoot td {
+        white-space: nowrap;
+        padding: 12px 18px;
+        font-size: 1.05rem;
+    }
+
+    tfoot {
+        font-weight: bold;
+        background-color: #f1f1f1;
+        position: sticky;
+        bottom: 0;
+    }
+
+    h4 {
+        margin-top: 32px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container-fluid mt-4 px-4">
+    {% for group in group_data %}
+        <h4>Group: {{ group.group_name }}</h4>
+        <div class="scroll-container mb-5">
+            <table class="table table-bordered table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        {% for company in group.companies %}
+                            <th>{{ company }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in group.table %}
+                        <tr>
+                            <td>{{ row.department }}</td>
+                            {% for count in row.companies %}
+                                <td>{{ count }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Total</td>
+                        {% for total in group.total_per_company %}
+                            <td>{{ total }}</td>
+                        {% endfor %}
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    {% empty %}
+        <div class="alert alert-info">
+            <p>No document data available to display based on your permissions.</p>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

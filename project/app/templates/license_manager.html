@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">
+            License Manager 
+            <span class="badge badge-danger" style="font-size: 0.5em; vertical-align: middle;">Superuser Only</span>
+        </h2>
+        <div>
+            <span class="text-muted">Manage limits and expiration for Company Groups</span>
+        </div>
+    </div>
+
+    {% if pending_requests %}
+    <div class="card shadow-sm mb-4 border-warning">
+        <div class="card-header bg-warning text-white font-weight-bold">
+            <i class="fas fa-exclamation-circle mr-2"></i>Pending Credit Requests
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="pl-4">Group Name</th>
+                            <th>Requested Amount</th>
+                            <th>Requested On</th>
+                            <th class="text-right pr-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in pending_requests %}
+                        <tr>
+                            <td class="pl-4 font-weight-bold">{{ req.group.name }}</td>
+                            <td class="font-weight-bold text-primary">+ {{ req.requested_rows }}</td>
+                            <td class="text-muted small">{{ req.created_at|date:"d-m-Y H:i" }}</td>
+                            <td class="text-right pr-4">
+                                <form method="POST" action="{% url 'license_manager' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action_type" value="credit_request">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <button type="submit" name="request_action" value="reject" class="btn btn-sm btn-outline-danger mr-2">Reject</button>
+                                    <button type="submit" name="request_action" value="approve" class="btn btn-sm btn-success">Approve</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow mb-5">
+        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 font-weight-bold text-dark">Active Licenses Overview</h5>
+
+            <a href="{% url 'download_license_report' %}" class="btn btn-success shadow-sm">
+                <i class="fas fa-sm text-white-50"></i> Download Report
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th class="pl-4">Company Group</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">License Type</th>
+                            <th class="text-right">Total Limit</th>
+                            <th class="text-right">Used (Processed)</th>
+                            <th class="text-right">Remaining Balance</th>
+                            <th class="text-center">Expiry Date</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in dashboard_data %}
+                        <tr>
+                            <td class="pl-4 font-weight-bold align-middle">{{ item.group_obj.name }}</td>
+
+                            <td class="text-center align-middle">
+                                {% if item.active %}
+                                <span class="badge badge-success px-3 py-2">Active</span>
+                                {% else %}
+                                <span class="badge badge-secondary px-3 py-2">Inactive</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-center align-middle">
+                                {% if item.group_obj.license.is_row_based %}
+                                    <span class="badge badge-info px-3 py-2">Row Based</span>
+                                    <div class="small text-muted mt-1">
+                                        ({{ item.group_obj.license.rows_per_credit }} rows/credit)
+                                    </div>
+                                {% else %}
+                                    <span class="badge badge-primary px-3 py-2">File Based</span>
+                                {% endif %}
+                            </td>
+
+
+                            <td class="text-right text-monospace align-middle">{{ item.limit|floatformat:0 }}</td>
+
+                            <td class="text-right text-monospace text-muted align-middle">{{ item.total_used|floatformat:0 }}</td>
+
+                            <td class="text-right text-monospace align-middle">
+                                {% if item.balance < 0 %} 
+                                    <span class="text-danger font-weight-bold">{{ item.balance|floatformat:0 }}</span>
+                                {% else %}
+                                    <span class="text-success font-weight-bold">{{ item.balance|floatformat:0 }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-center align-middle">
+                                {% if item.expiry %}
+                                {{ item.expiry|date:"d-m-Y" }}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-center align-middle">
+                                <button type="button" class="btn btn-sm btn-primary shadow-sm" data-toggle="modal"
+                                    data-target="#editModal{{ item.group_obj.id }}">
+                                    <i class="fas fa-edit mr-1"></i> Update
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fas fa-folder-open fa-2x mb-3 d-block"></i>
+                                No Company Groups found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for item in dashboard_data %}
+<div class="modal fade" id="editModal{{ item.group_obj.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'license_manager' %}">
+                {% csrf_token %}
+                <input type="hidden" name="group_id" value="{{ item.group_obj.id }}">
+
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">Edit License: <strong>{{ item.group_obj.name }}</strong></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="font-weight-bold">License Status</label>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" name="is_active" 
+                                id="activeSwitch{{ item.group_obj.id }}"
+                                {% if item.active %}checked{% endif %}>
+                            <label class="custom-control-label" for="activeSwitch{{ item.group_obj.id }}">
+                                License Active
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Row Limit (Total Allowed)</label>
+                        <input type="number" class="form-control" name="row_limit"
+                            value="{{ item.limit }}" required>
+                        <small class="form-text text-muted">
+                            Current Usage: {{ item.total_used }} rows.
+                            <br>
+                            <strong>Calculated Balance:</strong> 
+                            <span>{{ item.balance|floatformat:0 }}</span>
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Expiry Date</label>
+                        <input type="date" class="form-control" name="expiry_date"
+                            value="{{ item.expiry|date:'Y-m-d' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">License Type</label>
+                        <select class="form-control license-type-select" name="license_type" data-group-id="{{ item.group_obj.id }}">
+                            <option value="file" {% if item.group_obj.license.is_file_based %}selected{% endif %}>File Based</option>
+                            <option value="row" {% if item.group_obj.license.is_row_based %}selected{% endif %}>Row Based</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="rowsRatioGroup{{ item.group_obj.id }}" 
+                        style="{% if item.group_obj.license.is_file_based %}display: none;{% endif %}">
+                        <label class="font-weight-bold">Rows per 1 Credit</label>
+                        <input type="number" class="form-control" name="rows_per_credit" 
+                            value="{{ item.group_obj.license.rows_per_credit|default:500 }}">
+                        <small class="text-muted">Only applies if 'Row Based' is selected.</small>
+                    </div>
+
+
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    // Handle the visibility toggle when the dropdown changes
+    $('.license-type-select').on('change', function() {
+        const groupId = $(this).data('group-id');
+        const rowsGroup = $('#rowsRatioGroup' + groupId);
+        
+        if ($(this).val() === 'row') {
+            rowsGroup.slideDown(200); // Show if Row Based
+        } else {
+            rowsGroup.slideUp(200);   // Hide if File Based
+        }
+    });
+});
+</script>
+{% endblock %}

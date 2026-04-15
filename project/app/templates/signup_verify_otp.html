@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Verify OTP | ANYRECO</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" />
+    <link rel="stylesheet" href="{% static 'dashboard/plugins/fontawesome-free/css/all.min.css' %}">
+    
+    <style>
+        /* --- Modern CSS Reset & Variables --- */
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --border-color: #dee2e6;
+            --text-dark: #212529;
+            --text-light: #495057;
+            --border-radius: 8px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- Main Body & Background --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+        }
+
+        /* --- OTP Card Container --- */
+        .otp-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        /* --- Header & Logo --- */
+        .otp-header .otp-logo {
+            width: 160px;
+            margin-bottom: 20px;
+        }
+        .otp-header h1 {
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .otp-header p {
+            color: var(--text-light);
+            font-size: 15px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        /* --- Form Elements & Input Groups --- */
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+            position: relative;
+        }
+        .form-group .input-icon {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            z-index: 2;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px; /* Add padding for icon */
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.2);
+        }
+        
+        /* --- Special OTP Input Styling --- */
+        #otp.form-input {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 10px; /* Spreads out the numbers */
+            padding-left: 15px; /* Reset padding for centered text */
+        }
+        
+        #otp.form-input::placeholder {
+            font-size: 18px;
+            letter-spacing: normal;
+        }
+
+        /* --- Buttons --- */
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background-image: linear-gradient(to right, var(--success-color), #208938);
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        /* --- Error Messages --- */
+        .error-message {
+            color: var(--danger-color);
+            font-size: 14px;
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="otp-container">
+        <div class="otp-header">
+             <img src="{% static 'projectimage/foresightdigital.png' %}" alt="Foresight Digital Logo" class="otp-logo">
+            <h1>One Last Step!</h1>
+            <p>We've sent a 6-digit verification code to your email. Please enter it below to complete your registration.</p>
+        </div>
+
+        <form method="post" action="{% url 'signup_verify_otp' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <i class="fas fa-shield-alt input-icon"></i>
+                <input type="text" id="otp" name="otp" class="form-input" placeholder="------" required maxlength="6" pattern="\d{6}" title="Please enter a 6-digit OTP" autofocus/>
+            </div>
+
+            {% if error %}
+                <div class="error-message">{{ error }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn-primary">Verify & Create Account</button>
+        </form>
+    </div>
+
+</body>
+</html>

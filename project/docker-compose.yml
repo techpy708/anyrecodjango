@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  django-app:
+    build: .
+    container_name: django-app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    command: >
+      sh -c "
+        echo 'Running migrations...';
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        python manage.py collectstatic --noinput &&
+        python manage.py load_help_docs &&
+        gunicorn docmanager.wsgi:application --bind 0.0.0.0:8000
+      "
+
+  reminder-cron:
+    build: .
+    container_name: reminder-cron
+    env_file:
+      - .env
+    command: >
+      sh -c "
+        echo 'Running scheduled reminders...';
+        while true; do
+          current_time=$(date +\"%H:%M\")
+          if [ \"$current_time\" = \"10:30\" ]; then
+            echo 'Running send_expiry_reminders...';
+            python manage.py send_expiry_reminders;
+            sleep 86400;
+          else
+            sleep 60;
+          fi
+        done
+      "

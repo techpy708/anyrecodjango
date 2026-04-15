@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>OTP Login - Enter Email</title>
+  <link rel="stylesheet" href="{% static 'dashboard/plugins/google/fonts.css' %}"/>
+  <link rel="stylesheet" href="{% static 'dashboard/plugins/fontawesome-free/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'projectcss/login.css' %}"/>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <h1>OTP Login</h1>
+      <p>Enter your email to receive an OTP</p>
+    </div>
+    <form method="post" action="{% url 'send_otp' %}">
+      {% csrf_token %}
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" placeholder="Enter your email" required autofocus/>
+      {% if error %}
+        <div class="error-message">{{ error }}</div>
+      {% endif %}
+      <button type="submit" class="btn-primary">Send OTP</button>
+    </form>
+  </div>
+</body>
+</html>

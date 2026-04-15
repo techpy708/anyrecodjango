@@ -1,0 +1,63 @@
+.app-title {
+    font-weight: 600;
+    color: #343a40;
+}
+
+.brand-logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem 0;
+    background-color: white;
+}
+
+.brand-logo-container img {
+    height: 45px;
+    width: auto;
+    max-width: 80%;
+}
+
+.logout-button {
+    padding: 0;
+    border: none;
+    background: none;
+    color: rgba(0,0,0,.5);
+}
+.logout-button:hover {
+    color: rgba(0,0,0,.8);
+}
+
+/* === MODERN UI IMPROVEMENTS === */
+
+/* 1. Modern User Panel Styling */
+.user-panel .image .fa-user-circle {
+    color: #c2c7d0 !important;
+    line-height: 1.8; /* Better vertical alignment for the icon */
+}
+.user-panel .info {
+    padding-left: 10px;
+}
+
+/* 2. Refined Sidebar Navigation Links */
+.nav-sidebar .nav-item > .nav-link {
+    transition: background-color 0.2s ease-in-out, border-left-color 0.2s ease-in-out;
+    border-left: 3px solid transparent; /* Prepare for the active state highlight */
+}
+.nav-sidebar .nav-item > .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+.nav-sidebar .nav-item > .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: #007bff; /* Highlight color for active link */
+}
+
+/* 3. Softer Cards in Content Area */
+.card {
+    border: none; /* Remove harsh default border */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* A softer, more modern shadow */
+    border-radius: 0.5rem; /* Slightly more rounded corners */
+}
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid #e9ecef;
+}

@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Bank Statement Converter{% endblock %}
+
+{% block extra_styles %}
+<style>
+    /* --- COPIED FROM RECO.HTML FOR CONSISTENCY --- */
+    :root {
+        --primary-color: #007bff;
+        --primary-hover: #0069d9;
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #17a2b8;
+        --light-gray: #f4f6f9;
+        --border-color: #dee2e6;
+        --text-dark: #212529;
+        --text-muted: #6b7280;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        background: #fff;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    .card-title {
+        font-weight: 700;
+        color: var(--text-dark);
+        font-size: 1.1rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .card-title i {
+        color: var(--primary-color);
+        background: #e0e7ff;
+        padding: 8px;
+        border-radius: 8px;
+        margin-right: 12px !important;
+        font-size: 0.9rem;
+    }
+
+    /* Upload Area specific to this tool */
+    .upload-area {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        background-color: #f8fafc;
+        padding: 30px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    .upload-area:hover, .upload-area.dragover {
+        border-color: var(--primary-color);
+        background-color: #eef2ff;
+    }
+
+    /* Flash Message (Exact match to reco.html) */
+    .flash-message {
+        border-radius: 8px;
+        padding: 12px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        font-size: 0.9rem;
+    }
+
+    .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.5rem 1.2rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+    }
+    .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); color: white; }
+    .btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); transform: translateY(-1px); }
+    .btn-primary:disabled { background-color: #cbd5e1; border-color: #cbd5e1; cursor: not-allowed; transform: none; }
+
+    /* File List */
+    .file-list { list-style: none; padding: 0; margin: 0; text-align: left; }
+    .file-item {
+        background: #fff; border: 1px solid var(--border-color); border-radius: 8px;
+        padding: 8px 15px; margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                 PDF Converter
+                </h3>
+            </div>
+            
+            <div class="card-body">
+                <div id="flash-message" class="flash-message" style="display: none;"></div>
+
+                <form id="pdfForm" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="upload-area" id="dropZone">
+                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                        <h6 class="text-dark font-weight-bold">Drop PDFs Here</h6>
+                        <p class="text-muted small mb-0">Supported format: .pdf</p>
+                        <input type="file" name="pdf_files" id="pdfInput" class="d-none" multiple accept=".pdf" required>
+                    </div>
+
+                    <ul id="fileList" class="file-list mb-3"></ul>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary btn-block" id="convertBtn" disabled>
+                            <i class="fas fa-play mr-2"></i> Convert to Excel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropZone = document.getElementById('dropZone');
+        const pdfInput = document.getElementById('pdfInput');
+        const fileList = document.getElementById('fileList');
+        const convertBtn = document.getElementById('convertBtn');
+        const form = document.getElementById('pdfForm');
+        const flashMessage = document.getElementById('flash-message');
+
+        // --- Drag & Drop Handling ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, (ev) => { ev.preventDefault(); ev.stopPropagation(); }));
+        ['dragenter', 'dragover'].forEach(() => dropZone.classList.add('dragover'));
+        ['dragleave', 'drop'].forEach(() => dropZone.classList.remove('dragover'));
+
+        dropZone.addEventListener('drop', (e) => { pdfInput.files = e.dataTransfer.files; handleFiles(); });
+        dropZone.addEventListener('click', () => pdfInput.click());
+        pdfInput.addEventListener('change', handleFiles);
+
+        function handleFiles() {
+            const files = pdfInput.files;
+            fileList.innerHTML = '';
+            if (files.length > 0) {
+                convertBtn.disabled = false;
+                Array.from(files).forEach(file => {
+                    const li = document.createElement('li');
+                    li.className = 'file-item';
+                    li.innerHTML = `<span><i class="fas fa-file-pdf text-danger mr-2"></i>${file.name}</span> <i class="fas fa-check text-success"></i>`;
+                    fileList.appendChild(li);
+                });
+            } else { convertBtn.disabled = true; }
+        }
+
+        // --- Form Submission Logic ---
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (pdfInput.files.length === 0) return;
+
+            // 1. UI STATE: Processing
+            convertBtn.disabled = true;
+            convertBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+            
+            // Show Blue Info Message
+            flashMessage.className = 'flash-message alert-info text-info bg-light border-info';
+            flashMessage.innerHTML = '<i class="fas fa-cog fa-spin mr-2"></i> processing files...';
+            flashMessage.style.display = 'flex';
+
+            const formData = new FormData(form);
+
+            fetch(window.location.href, { method: 'POST', body: formData })
+            .then(async response => {
+                // 2. CHECK FOR ERRORS (Like 403 Forbidden for License)
+                if (response.status !== 200) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || "Unknown error occurred.");
+                    }).catch(err => {
+                        if(err.message) throw err;
+                        throw new Error("Server Error: " + response.status);
+                    });
+                }
+                
+                // 3. SUCCESS: Get filename and blob
+                const disp = response.headers.get('Content-Disposition');
+                let filename = 'Bank_Statements.zip';
+                if (disp && disp.includes('filename=')) filename = disp.split('filename=')[1].replace(/['"]/g, '');
+                return response.blob().then(blob => ({ blob, filename }));
+            })
+            .then(({ blob, filename }) => {
+                // 4. TRIGGER DOWNLOAD
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+                window.URL.revokeObjectURL(url); a.remove();
+
+                // 5. SHOW SUCCESS MESSAGE (Green)
+                flashMessage.className = 'flash-message alert-success text-success bg-light border-success';
+                flashMessage.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Success! Download started.';
+                
+                // Reset Form
+                resetPage();
+            })
+            .catch(error => {
+                // 6. SHOW ERROR MESSAGE (Red) - EXACTLY LIKE RECO.HTML
+                flashMessage.className = 'flash-message alert-danger text-danger bg-light border-danger';
+                flashMessage.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> ${error.message}`;
+                flashMessage.style.display = 'flex';
+
+                // Reset Button
+                convertBtn.disabled = false;
+                convertBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Convert to Excel';
+            });
+        });
+
+        function resetPage() {
+            pdfInput.value = '';
+            fileList.innerHTML = '';
+            setTimeout(() => {
+                convertBtn.disabled = true;
+                convertBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Convert to Excel';
+                // Optional: Hide success message after a few seconds
+                // flashMessage.style.display = 'none'; 
+            }, 2000);
+        }
+    });
+</script>
+{% endblock %}

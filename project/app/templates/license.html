@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_styles %}
+<style>
+    /* --- FIX FOR HEADER JUMP --- */
+    html {
+        overflow-y: scroll;
+    }
+
+    /* Scope these variables to the container */
+    .license-page-wrapper {
+        --local-primary: #4f46e5; 
+        --bg-color: #f8fafc;
+        --card-bg: #ffffff;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --local-border: #e2e8f0;
+    }
+
+    .license-container {
+        max-width: 1100px; /* Increased width slightly to fit new columns */
+        margin: 0 auto;
+        padding-bottom: 3rem;
+        font-family: inherit; 
+        color: var(--text-main);
+    }
+
+    /* Status Cards */
+    .status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .status-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .status-icon-circle {
+        width: 48px;
+        height: 48px;
+        background: #e0e7ff;
+        color: var(--local-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-main);
+        line-height: 1.2;
+    }
+
+    .metric-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+
+    /* Helper text colors */
+    .text-success-custom { color: #059669 !important; }
+    .text-danger-custom { color: #dc2626 !important; }
+    .text-warning-custom { color: #d97706 !important; }
+
+    /* Log Table */
+    .log-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1px solid var(--local-border);
+        overflow: hidden;
+    }
+
+    .log-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--local-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .log-title {
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.5rem; 
+    }
+
+    /* Scope table styles */
+    .license-container .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .license-container .custom-table th {
+        background-color: #f8fafc;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        padding: 1rem 1.5rem;
+        text-align: left;
+        border-bottom: 1px solid var(--local-border);
+        border-top: none; 
+    }
+
+    .license-container .custom-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--local-border);
+        color: var(--text-main);
+        font-size: 0.9rem;
+        vertical-align: middle;
+        border-top: none; 
+    }
+
+    .timestamp-cell {
+        font-family: monospace;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    /* Pagination */
+    .pagination-container {
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .custom-pagination {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        gap: 0.5rem;
+    }
+
+    .page-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        border: 1px solid transparent;
+    }
+
+    .page-btn:hover {
+        background-color: #f1f5f9;
+    }
+
+    .page-btn.active {
+        background-color: var(--local-primary);
+        color: white;
+    }
+
+    .page-btn.disabled {
+        color: #cbd5e1;
+        pointer-events: none;
+    }
+
+    /* Report Button */
+    .btn-report {
+        background-color: #10b981;
+        color: white;
+        border: 1px solid #10b981;
+        padding: 0.4rem 1rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+
+    .btn-report:hover {
+        background-color: #059669;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+    }
+
+    /* Request Credit Button */
+    .btn-request-credit {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 0.75rem;
+        background: #f1f5f9;
+        color: var(--text-muted);
+        border: 1px solid var(--local-border);
+        padding: 0.3rem 0.6rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-request-credit:hover {
+        background: #e2e8f0;
+        color: var(--text-main);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-5 license-page-wrapper">
+    <div class="license-container">
+
+        <div class="status-grid">
+            <div class="status-card">
+                <div class="status-icon-circle"><i class="fas fa-calendar-check"></i></div>
+                {% if current_expiry and current_expiry != "N/A" and current_expiry != "No License Found" %}
+                <div class="metric-value text-success-custom">{{ current_expiry }}</div>
+                <div class="metric-label">License Expiry Date</div>
+                {% else %}
+                <div class="metric-value text-danger-custom">Not Active</div>
+                <div class="metric-label">No License Found</div>
+                {% endif %}
+            </div>
+            <div class="status-card">
+                {% if user_group %}
+                <button type="button" class="btn-request-credit" data-toggle="modal" data-target="#requestCreditModal">
+                    <i class="fas fa-plus-circle mr-1"></i> Request Credit
+                </button>
+                {% endif %}
+
+                <div class="status-icon-circle"><i class="fas fa-file-contract"></i></div>
+                {% if files_remaining is not None %}
+                <div
+                    class="metric-value {% if files_remaining > 5 %}text-success-custom{% elif files_remaining > 0 %}text-warning-custom{% else %}text-danger-custom{% endif %}">
+                    {{ files_remaining }}
+                </div>
+                <div class="metric-label">Sets Remaining</div>
+                {% else %}
+                <div class="metric-value text-muted">-</div>
+                <div class="metric-label">Unknown Limit</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="log-card">
+            <div class="log-header">
+                <h3 class="log-title">Processing History</h3>
+
+                {% if logs %}
+                <a href="{% url 'download_history' %}" class="btn-report">
+                    <i class="fas fa-file-export mr-2"></i> Report
+                </a>
+                {% endif %}
+
+                <span class="badge badge-light text-dark border">Total: {{ logs|length }}</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="custom-table" id="activityTable">
+                    <thead>
+                        <tr>
+                            <th width="15%">Timestamp</th>
+                            <th width="15%">Group</th> <th width="20%">User</th>  <th width="25%">File 1 Name</th>
+                            <th width="25%">File 2 Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if logs %}
+                        {% for log in logs %}
+                        <tr class="table-row">
+                            <td class="timestamp-cell">
+                                <i class="far fa-clock mr-2"></i>{{ log.timestamp|date:"d-M-Y H:i" }}
+                            </td>
+                            <td>
+                                <span class="badge badge-light border">{{ log.group_name }}</span>
+                            </td>
+                            <td>
+                                <i class="fas fa-user-circle mr-1 text-muted"></i> {{ log.user }}
+                            </td>
+                            <td>
+                                <strong>{{ log.file1 }}</strong>
+                            </td>
+                            <td>
+                                <strong>{{ log.file2 }}</strong>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                No processing history found.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-container">
+                <ul class="custom-pagination" id="paginationControls"></ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="requestCreditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'license_view' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Request Credit</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Number of Sets needed</label>
+                        <input type="number" name="request_credit_amount" class="form-control" placeholder="e.g. 500" min="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Send Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        setupPagination('activityTable', 'paginationControls', 10);
+    });
+
+    function setupPagination(tableId, paginationId, rowsPerPage) {
+        const table = document.getElementById(tableId);
+        const ul = document.getElementById(paginationId);
+        if (!table || !ul) return;
+
+        const rows = Array.from(table.querySelectorAll('tbody tr.table-row'));
+        if (!rows.length) return;
+
+        const pages = Math.ceil(rows.length / rowsPerPage);
+        let currentPage = 1;
+
+        function displayRows(page) {
+            currentPage = page;
+            rows.forEach(r => r.style.display = 'none');
+            const start = (page - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            rows.slice(start, end).forEach(r => r.style.display = 'table-row');
+            renderControls();
+        }
+
+        function renderControls() {
+            ul.innerHTML = "";
+            // Prev
+            const prevLi = document.createElement('li');
+            prevLi.innerHTML = `<a href="#" class="page-btn ${currentPage === 1 ? 'disabled' : ''}"><i class="fas fa-chevron-left"></i></a>`;
+            prevLi.onclick = (e) => { e.preventDefault(); if (currentPage > 1) displayRows(currentPage - 1); };
+            ul.appendChild(prevLi);
+            // Pages
+            for (let i = 1; i <= pages; i++) {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#" class="page-btn ${currentPage === i ? 'active' : ''}">${i}</a>`;
+                li.onclick = (e) => { e.preventDefault(); displayRows(i); };
+                ul.appendChild(li);
+            }
+            // Next
+            const nextLi = document.createElement('li');
+            nextLi.innerHTML = `<a href="#" class="page-btn ${currentPage === pages ? 'disabled' : ''}"><i class="fas fa-chevron-right"></i></a>`;
+            nextLi.onclick = (e) => { e.preventDefault(); if (currentPage < pages) displayRows(currentPage + 1); };
+            ul.appendChild(nextLi);
+        }
+        displayRows(1);
+    }
+</script>
+{% endblock %}

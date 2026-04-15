@@ -1,0 +1,1234 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_styles %}
+<style>
+    :root {
+        --primary-color: #4f46e5; /* Indigo */
+        --primary-hover: #4338ca;
+        --secondary-bg: #f3f4f6;
+        --border-color: #e5e7eb;
+        --text-dark: #1f2937;
+        --text-muted: #6b7280;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+    }
+
+    /* --- GLOBAL CARD STYLES --- */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        background: #fff;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease;
+    }
+
+    .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    .card-title {
+        font-weight: 700;
+        color: var(--text-dark);
+        font-size: 1.1rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .card-title i {
+        color: var(--primary-color);
+        background: #e0e7ff;
+        padding: 8px;
+        border-radius: 8px;
+        margin-right: 12px !important;
+        font-size: 0.9rem;
+    }
+
+    /* --- FILE UPLOAD SECTION --- */
+    .file-upload-card {
+        min-height: 450px;
+    }
+
+    .custom-file {
+        margin-bottom: 0.5rem;
+    }
+
+    .custom-file-label {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        padding: 0.5rem 0.75rem;
+        height: auto;
+        color: var(--text-muted);
+    }
+    
+    .custom-file-label::after {
+        background-color: var(--secondary-bg);
+        border-radius: 0 8px 8px 0;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* --- COLUMN LISTS (DRAGGABLE CHIPS) --- */
+    #column-names-container {
+        background: #f9fafb;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 1.5rem;
+    }
+
+    #column-names-container h5 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .column-list {
+        list-style: none;
+        padding: 0;
+        max-height: 350px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    /* Custom Scrollbar */
+    .column-list::-webkit-scrollbar { width: 6px; }
+    .column-list::-webkit-scrollbar-track { background: #f1f1f1; }
+    .column-list::-webkit-scrollbar-thumb { background: #c7c7c7; border-radius: 3px; }
+
+    .column-list li {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        padding: 8px 12px;
+        margin-bottom: 6px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: var(--text-dark);
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        
+    }
+
+    .column-list li:hover {
+        border-color: var(--primary-color);
+        transform: translateX(2px);
+        box-shadow: 0 2px 4px rgba(79, 70, 229, 0.1);
+    }
+
+    .column-list li::before {
+        content: '⋮⋮'; /* Grip Handle */
+        margin-right: 10px;
+        color: #d1d5db;
+        font-weight: 900;
+        letter-spacing: -2px;
+        cursor: grab;
+    }
+
+    .column-list li.dragging {
+        opacity: 0.5;
+        border: 1px dashed var(--primary-color);
+    }
+
+    /* --- RIGHT PANEL & INPUTS --- */
+    .process-card {
+        min-height: 450px;
+        background: #fdfdfd;
+    }
+
+    .process-controls {
+        display: flex;
+        gap: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 25px;
+    }
+
+    .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.5rem 1.2rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+    }
+
+    .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); }
+    .btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); transform: translateY(-1px); }
+    
+    .btn-success { background-color: var(--success-color); border: none; }
+    .btn-info { background-color: #0ea5e9; border: none; }
+    
+    /* --- DYNAMIC RULE CARD STYLING --- */
+    .new-inputs {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden; /* Ensures header background fits corners */
+        transition: all 0.3s ease;
+    }
+
+    .rule-header {
+        background-color: #f9fafb;
+        border-bottom: 1px solid var(--border-color);
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .rule-header:hover {
+        background-color: #f3f4f6;
+    }
+
+    .rule-title-text {
+        color: var(--primary-color);
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #e0e7ff;
+        padding: 4px 12px;
+        border-radius: 20px;
+    }
+
+    .rule-actions button {
+        margin-left: 10px;
+        color: var(--text-muted);
+        transition: color 0.2s;
+        background: transparent;
+        border: none;
+        padding: 4px;
+    }
+
+    .rule-actions button:hover {
+        color: var(--primary-color);
+    }
+    
+    .rule-actions button.delete-rule:hover {
+        color: var(--danger-color);
+    }
+
+    .rule-body {
+        padding: 20px;
+        display: block; /* Default visible */
+        animation: fadeIn 0.3s;
+    }
+
+    .rule-body.collapsed {
+        display: none;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Grid Layout for Inputs inside JS */
+    .row-container {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -10px;
+        margin-left: -10px;
+        align-items: flex-end; /* Align inputs to bottom */
+    }
+
+    /* Input Styling */
+    .form-control {
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+        height: auto;
+    }
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Drag Drop Targets */
+    .drag-drop-container {
+        background-color: #f8fafc;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+        border: 1px dashed #cbd5e1;
+    }
+
+    .column-list-container {
+        display: flex;
+        gap: 20px;
+    }
+
+    .file1-drag-columns, .file2-drag-columns {
+        flex: 1;
+        background: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .file1-drag-columns h4, .file2-drag-columns h4 {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        font-weight: 700;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 8px;
+    }
+
+    .drag-field {
+        background-color: #f1f5f9;
+        border: 1px dashed #94a3b8;
+        border-radius: 6px;
+        color: #64748b;
+        font-size: 0.85rem;
+        padding: 10px;
+        margin-bottom: 8px;
+        text-align: center;
+        transition: all 0.2s;
+        cursor: default;
+        position: relative;
+    }
+
+    .drag-field.populated {
+        background-color: #ecfdf5; /* Light green bg */
+        border: 1px solid #10b981; /* Green border */
+        color: #065f46;
+        font-weight: 600;
+        border-style: solid;
+    }
+    
+    .drag-field.populated::after {
+        content: '\f00c'; /* FontAwesome Check */
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 10px;
+        color: #10b981;
+    }
+
+    /* Modal Styling */
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .modal-header {
+        background: var(--secondary-bg);
+        border-radius: 12px 12px 0 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .modal-checkbox-list {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        padding: 15px;
+        border-radius: 8px;
+        background: #f9fafb;
+    }
+    .custom-control-label {
+        font-size: 0.9rem;
+        padding-top: 2px;
+        cursor: pointer;
+    }
+
+    /* Utility */
+    .text-placeholder {
+        padding: 40px;
+        background: #f9fafb;
+        border: 2px dashed #e5e7eb;
+        border-radius: 12px;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .text-placeholder i {
+        font-size: 2rem;
+        color: #d1d5db;
+        margin-bottom: 10px;
+    }
+
+    .flash-message {
+        border-radius: 8px;
+        padding: 12px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* Loading Overlay */
+    #upload-status {
+        background: rgba(255,255,255,0.9);
+        padding: 20px;
+        border-radius: 8px;
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4 col-md-5">
+        <div class="card file-upload-card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-folder-open"></i> Data Source</h3>
+            </div>
+            <div class="card-body">
+                <form id="upload-form" method="POST" enctype="multipart/form-data" action="{% url 'upload_files' %}">
+                    {% csrf_token %}
+
+                    <div class="form-group file-input">
+                        <label for="file1">File 1</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="file1" name="file1" accept=".xlsx, .xls, .csv" required>
+                            <label class="custom-file-label" for="file1">Select file...</label>
+                            <small>Accepted Format: .xlsx, .csv</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group file-input mt-3">
+                        <label for="file2">File 2</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="file2" name="file2" accept=".xlsx, .xls, .csv" required>
+                            <label class="custom-file-label" for="file2">Select file...</label>
+                            <small>Accepted Format: .xlsx, .csv</small>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="upload-status" class="mt-4 text-center" style="display:none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted small">Processing files...</p>
+                </div>
+
+                <div id="column-names-container" style="display: none;">
+                    <h5><i class="fas fa-grip-vertical mr-2 text-muted"></i> Available Columns</h5>
+                    <p class="text-muted small mb-3">Drag these columns into the reconciliation rules on the right.</p>
+                    
+                    <ul class="nav nav-tabs" id="columnTabs" role="tablist" style="border-bottom: 1px solid #e5e7eb; margin-bottom: 10px;">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="file1-tab" data-toggle="tab" href="#file1-pane" role="tab" aria-selected="true" style="padding: 8px 15px; font-size: 0.85rem;">File 1</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="file2-tab" data-toggle="tab" href="#file2-pane" role="tab" aria-selected="false" style="padding: 8px 15px; font-size: 0.85rem;">File 2</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="file1-pane" role="tabpanel">
+                            <ul id="file1-list" class="column-list"></ul>
+                        </div>
+                        <div class="tab-pane fade" id="file2-pane" role="tabpanel">
+                            <ul id="file2-list" class="column-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-top">
+                <div class="d-flex justify-content-between">
+                    <button type="button" id="clear-button" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-trash-alt mr-1"></i> Reset
+                    </button>
+                    <button type="submit" form="upload-form" id="submit-button" class="btn btn-primary btn-sm">
+                        <i class="fas fa-cloud-upload-alt mr-1"></i> Load & Analyze
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8 col-md-7">
+        <div class="card process-card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-tasks"></i> Reconciliation</h3>
+            </div>
+            <div class="card-body">
+                <div id="flash-message" class="flash-message" style="display: none;"></div>
+
+                <div class="process-controls">
+                    <button type="button" id="addButton" class="btn btn-success shadow-sm">
+                        <i class="fas fa-plus-circle mr-1"></i> Add Rule
+                    </button>
+                   
+                </div>
+                
+                <div id="inputContainer" class="input-container">
+                    <div class="text-placeholder">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h6 class="text-dark font-weight-bold">No Rules Defined</h6>
+                        <p class="text-muted small">Click "Add Rule" to begin mapping your data columns.</p>
+                    </div>
+                </div>
+
+
+                <div class="process-controls d-flex justify-content-end">
+                    <button type="button" id="processDataButton" class="btn btn-info shadow-sm" style="margin-top: 14px;" disabled>
+                        <i class="fas fa-play mr-1"></i> Execute Reconciliation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="columnSelectionModal" tabindex="-1" role="dialog" aria-labelledby="columnSelectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold text-dark" id="columnSelectionModalLabel">
+                    <i class="fas fa-table mr-2 text-primary"></i>Select Output Columns
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">Choose which columns should appear in the final Excel report. Leave blank to include all. The columns you drag to match are mandatory.</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-primary mb-2">File 1 Columns</h6>
+                        <div id="modal-file1-list" class="modal-checkbox-list"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-primary mb-2">File 2 Columns</h6>
+                        <div id="modal-file2-list" class="modal-checkbox-list"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveColumnSelectionBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+
+
+
+{% block extra_scripts %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('upload-form');
+        const uploadStatus = document.getElementById('upload-status');
+      
+        const file1List = document.getElementById('file1-list'); 
+        const file2List = document.getElementById('file2-list');
+        const columnNamesContainer = document.getElementById('column-names-container');
+        const inputContainer = document.getElementById('inputContainer');
+        const addButton = document.getElementById('addButton');
+        const processDataButton = document.getElementById('processDataButton');
+        const flashMessage = document.getElementById('flash-message');
+        
+        // Modal Elements
+        const modalFile1List = document.getElementById('modal-file1-list');
+        const modalFile2List = document.getElementById('modal-file2-list');
+        const saveColumnSelectionBtn = document.getElementById('saveColumnSelectionBtn');
+        let currentEditingRuleRow = null; 
+        
+        let inputSectionCount = 0; 
+        
+        // --- GLOBAL PATHS & DATA ---
+        let uploadedFile1Path = null;
+        let uploadedFile2Path = null;
+        let globalFile1Cols = [];
+        let globalFile2Cols = [];
+
+        // Update custom file input label
+        document.querySelectorAll('.custom-file-input').forEach(input => {
+            input.addEventListener('change', function() {
+                let fileName = this.value.split('\\').pop();
+                let label = this.nextElementSibling;
+                if (label) {
+                    label.textContent = fileName || 'Select file...';
+                    label.style.color = '#1f2937';
+                    label.style.fontWeight = '500';
+                }
+            });
+        });
+
+        // --- REUSABLE RESET FUNCTION ---
+        function resetInterface() {
+            form.reset();
+            // Restore Placeholder
+            inputContainer.innerHTML = `
+                <div class="text-placeholder">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h6 class="text-dark font-weight-bold">No Rules Defined</h6>
+                    <p class="text-muted small">Click "Add Rule" to begin mapping your data columns.</p>
+                </div>
+            `;
+            
+            file1List.innerHTML = '';
+            file2List.innerHTML = '';
+            
+            uploadedFile1Path = null;
+            uploadedFile2Path = null;
+            globalFile1Cols = [];
+            globalFile2Cols = [];
+            
+            flashMessage.style.display = 'none';
+            columnNamesContainer.style.display = 'none';
+            
+            document.querySelectorAll('.custom-file-label').forEach(label => {
+                label.textContent = 'Select file...';
+                label.style.color = '';
+                label.style.fontWeight = '';
+            });
+
+            inputSectionCount = 0; // Reset counter
+            processDataButton.disabled = true;
+        }
+
+        function createDraggableListItem(column, parent) {
+            const listItem = document.createElement('li');
+            listItem.textContent = column;
+            listItem.setAttribute('draggable', 'true');
+            listItem.addEventListener('dragstart', function (e) {
+                this.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', `column:${column}`); 
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+            listItem.addEventListener('dragend', function () {
+                this.classList.remove('dragging');
+            });
+            parent.appendChild(listItem);
+        }
+
+        function setupDragField(field) {
+            field.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                this.style.borderColor = '#10b981';
+                this.style.backgroundColor = '#ecfdf5';
+            });
+            field.addEventListener('dragleave', function() { 
+                this.style.borderColor = ''; 
+                this.style.backgroundColor = ''; 
+            });
+            field.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = ''; 
+                this.style.backgroundColor = ''; 
+                
+                const data = e.dataTransfer.getData('text/plain');
+                if (data.startsWith('column:')) {
+                    const colName = data.substring(7);
+                    field.textContent = colName; 
+                    field.classList.add('populated'); 
+                    
+                    // --- AUTO-SELECT DROPPED COLUMN ---
+                    const ruleRow = field.closest('.new-inputs');
+                    if (ruleRow) {
+                        const hiddenInput = ruleRow.querySelector('.output-cols-storage');
+                        const btn = ruleRow.querySelector('.add-cols-button');
+                        
+                        // Parse current selection or init empty array
+                        let currentCols = hiddenInput.value ? JSON.parse(hiddenInput.value) : [];
+                        
+                        // Add if not already present
+                        if (!currentCols.includes(colName)) {
+                            currentCols.push(colName);
+                            hiddenInput.value = JSON.stringify(currentCols);
+                            
+                            // Update Button UI to reflect change
+                            btn.innerHTML = `<i class="fas fa-check-circle mr-1"></i> ${currentCols.length} Columns Selected`;
+                            btn.classList.remove('btn-outline-secondary');
+                            btn.classList.add('btn-info');
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSectionNumbers() {
+            const sections = document.querySelectorAll('.new-inputs');
+            inputSectionCount = 0;
+            sections.forEach((section) => {
+                const titleSpan = section.querySelector('.rule-title-text');
+                if(titleSpan) titleSpan.textContent = `RULE ${++inputSectionCount}`; 
+            });
+            if (sections.length === 0) {
+               if(!inputContainer.querySelector('.text-placeholder')) {
+                   inputContainer.innerHTML = `
+                       <div class="text-placeholder">
+                           <i class="fas fa-clipboard-list"></i>
+                           <h6 class="text-dark font-weight-bold">No Rules Defined</h6>
+                           <p class="text-muted small">Click "Add Rule" to begin mapping your data columns.</p>
+                       </div>
+                   `;
+               }
+            }
+        }
+
+        // --- MODAL LOGIC ---
+        function openColumnModal(buttonElement) {
+            currentEditingRuleRow = buttonElement.closest('.new-inputs');
+            
+            const hiddenInput = currentEditingRuleRow.querySelector('.output-cols-storage');
+            const savedCols = hiddenInput.value ? JSON.parse(hiddenInput.value) : [];
+            const savedSet = new Set(savedCols);
+
+            // Identify columns currently being used in Drag & Drop
+            const f1DragContainer = currentEditingRuleRow.querySelector('.file1-drag-columns');
+            const f2DragContainer = currentEditingRuleRow.querySelector('.file2-drag-columns');
+            
+            const usedF1 = [];
+            if(f1DragContainer) {
+                f1DragContainer.querySelectorAll('.drag-field.populated').forEach(el => usedF1.push(el.textContent));
+            }
+            
+            const usedF2 = [];
+            if(f2DragContainer) {
+                f2DragContainer.querySelectorAll('.drag-field.populated').forEach(el => usedF2.push(el.textContent));
+            }
+
+            const usedSetF1 = new Set(usedF1);
+            const usedSetF2 = new Set(usedF2);
+
+            modalFile1List.innerHTML = '';
+            modalFile2List.innerHTML = '';
+
+            globalFile1Cols.forEach(col => {
+                const isLocked = usedSetF1.has(col);
+                const isChecked = savedSet.has(col) || isLocked; 
+
+                const div = document.createElement('div');
+                div.className = 'custom-control custom-checkbox mb-2';
+                div.innerHTML = `
+                    <input type="checkbox" class="custom-control-input f1-check" id="f1_${col}" value="${col}" ${isChecked ? 'checked' : ''} ${isLocked ? 'disabled' : ''}>
+                    <label class="custom-control-label" for="f1_${col}">
+                        ${col} ${isLocked ? '<span class="locked-badge">Used in Match</span>' : ''}
+                    </label>
+                `;
+                modalFile1List.appendChild(div);
+            });
+
+            globalFile2Cols.forEach(col => {
+                const isLocked = usedSetF2.has(col);
+                const isChecked = savedSet.has(col) || isLocked; 
+
+                const div = document.createElement('div');
+                div.className = 'custom-control custom-checkbox mb-2';
+                div.innerHTML = `
+                    <input type="checkbox" class="custom-control-input f2-check" id="f2_${col}" value="${col}" ${isChecked ? 'checked' : ''} ${isLocked ? 'disabled' : ''}>
+                    <label class="custom-control-label" for="f2_${col}">
+                        ${col} ${isLocked ? '<span class="locked-badge">Used in Match</span>' : ''}
+                    </label>
+                `;
+                modalFile2List.appendChild(div);
+            });
+
+            $('#columnSelectionModal').modal('show');
+        }
+
+        saveColumnSelectionBtn.addEventListener('click', function() {
+            if (!currentEditingRuleRow) return;
+
+            const selected = [];
+            document.querySelectorAll('.f1-check:checked').forEach(cb => selected.push(cb.value));
+            document.querySelectorAll('.f2-check:checked').forEach(cb => selected.push(cb.value));
+
+            const hiddenInput = currentEditingRuleRow.querySelector('.output-cols-storage');
+            hiddenInput.value = JSON.stringify(selected);
+
+            const btn = currentEditingRuleRow.querySelector('.add-cols-button');
+            if (selected.length > 0) {
+                btn.innerHTML = `<i class="fas fa-check-circle mr-1"></i> ${selected.length} Columns Selected`;
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-info');
+            } else {
+                btn.innerHTML = `<i class="fas fa-table mr-1"></i> Select Output Columns`;
+                btn.classList.remove('btn-info');
+                btn.classList.add('btn-outline-secondary'); 
+            }
+
+            $('#columnSelectionModal').modal('hide');
+        });
+
+
+        // --- UPLOAD HANDLER ---
+        form.addEventListener('submit', function (e) {
+            e.preventDefault(); 
+            file1List.innerHTML = ''; file2List.innerHTML = ''; 
+            columnNamesContainer.style.display = 'none';
+            flashMessage.style.display = 'none';
+            uploadedFile1Path = null; uploadedFile2Path = null;
+            globalFile1Cols = []; globalFile2Cols = [];
+
+            uploadStatus.style.display = 'block'; 
+            
+            fetch("{% url 'upload_files' %}", { method: 'POST', body: new FormData(form) })
+            .then(response => response.json())
+            .then(data => {
+                uploadStatus.style.display = 'none';
+                if (data.status === 'success') {
+                    uploadedFile1Path = data.file1_path;
+                    uploadedFile2Path = data.file2_path;
+                    uploadedFile1Name = data.original_file1;
+                    uploadedFile2Name = data.original_file2;
+
+                    globalFile1Cols = data.columns['File 1'] || [];
+                    globalFile2Cols = data.columns['File 2'] || [];
+
+                    flashMessage.className = 'flash-message alert-success text-success bg-light border-success';
+                    flashMessage.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ${data.message}`;
+                    flashMessage.style.display = 'flex';
+                    columnNamesContainer.style.display = 'block';
+
+                    if (data.columns['File 1']) data.columns['File 1'].forEach(c => createDraggableListItem(c, file1List));
+                    if (data.columns['File 2']) data.columns['File 2'].forEach(c => createDraggableListItem(c, file2List));
+                    
+                    processDataButton.disabled = false;
+                } else {
+                    flashMessage.className = 'flash-message alert-danger text-danger bg-light border-danger';
+                    flashMessage.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> Upload failed: ${data.message}`;
+                    flashMessage.style.display = 'flex';
+                }
+            })
+            .catch(error => {
+                uploadStatus.style.display = 'none';
+                flashMessage.className = 'flash-message alert-danger text-danger bg-light border-danger';
+                flashMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Error occurred during upload.';
+                flashMessage.style.display = 'flex';
+            });
+        });
+
+        // --- ADD RULE HANDLER ---
+        addButton.addEventListener('click', function() {
+            const placeholder = inputContainer.querySelector('.text-placeholder');
+            if (placeholder) inputContainer.removeChild(placeholder);
+            
+            // 1. Create Main Card Container
+            const newInputs = document.createElement('div');
+            newInputs.className = 'new-inputs';
+            
+            // 2. Create Header
+            const ruleHeader = document.createElement('div');
+            ruleHeader.className = 'rule-header';
+            
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'rule-title-text';
+            titleSpan.textContent = `RULE ${++inputSectionCount}`;
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'rule-actions';
+            
+            const minimizeBtn = document.createElement('button');
+            minimizeBtn.type = 'button';
+            minimizeBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+            minimizeBtn.title = "Minimize Rule";
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'delete-rule';
+            deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            deleteBtn.title = "Remove Rule";
+            
+            actionsDiv.appendChild(minimizeBtn);
+            actionsDiv.appendChild(deleteBtn);
+            
+            ruleHeader.appendChild(titleSpan);
+            ruleHeader.appendChild(actionsDiv);
+            newInputs.appendChild(ruleHeader);
+
+            // 3. Create Collapsible Body
+            const ruleBody = document.createElement('div');
+            ruleBody.className = 'rule-body';
+            
+            const toggleRule = () => {
+                ruleBody.classList.toggle('collapsed');
+                const icon = minimizeBtn.querySelector('i');
+                if (ruleBody.classList.contains('collapsed')) {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                } else {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                }
+            };
+            
+            minimizeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleRule();
+            });
+            ruleHeader.addEventListener('click', function(e) {
+                if(!e.target.closest('.delete-rule')) {
+                    toggleRule();
+                }
+            });
+
+            deleteBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                inputContainer.removeChild(newInputs);
+                updateSectionNumbers();
+            });
+
+            // 4. Generate Inputs inside Rule Body
+            const rowContainer = document.createElement('div');
+            rowContainer.className = 'row-container'; 
+
+            const createWrapper = (labelTxt, inputEl, colClass = 'col-md-3') => {
+                const wrapper = document.createElement('div');
+                wrapper.className = `${colClass} mb-3`;
+                wrapper.style.paddingLeft = '10px'; wrapper.style.paddingRight = '10px';
+                
+                if (labelTxt) {
+                    const label = document.createElement('label');
+                    label.textContent = labelTxt;
+                    label.style.fontSize = '0.8rem';
+                    label.style.fontWeight = 'bold';
+                    label.style.color = '#4b5563';
+                    wrapper.appendChild(label);
+                }
+                wrapper.appendChild(inputEl);
+                return wrapper;
+            };
+
+            // Input 1: Dropdown
+            const dropdown = document.createElement('select');
+            dropdown.className = 'dropdown-select form-control';
+            dropdown.innerHTML = `
+                <option value="">-- Choose Type --</option>
+                <option value="file1reconciled">Reconciliation</option>
+                <option value="namematch">Description Match</option>
+                <option value="diffReconcile">Difference Reconciliation</option>
+            `;
+            rowContainer.appendChild(createWrapper('Select', dropdown));
+
+            // Input 2: Sheet Name
+            const sheetNameInput = document.createElement('input');
+            sheetNameInput.type = 'text'; sheetNameInput.placeholder = 'e.g. Sheet1'; sheetNameInput.className = 'sheet-name-input form-control';
+            rowContainer.appendChild(createWrapper('Output Sheet Name', sheetNameInput));
+
+            // Input 3: Header Name
+            const headerNameInput = document.createElement('input');
+            headerNameInput.type = 'text'; headerNameInput.placeholder = 'e.g. Result'; headerNameInput.className = 'header-name-input form-control';
+            rowContainer.appendChild(createWrapper('Output Result Header', headerNameInput));
+
+            // --- OPTIONAL FIELDS (Visibility depends on dropdown) ---
+            
+            // Field A: Threshold (For Description Match)
+            const thresholdInput = document.createElement('input');
+            thresholdInput.type = 'number'; thresholdInput.placeholder = '0-100'; thresholdInput.className = 'threshold-input form-control';
+            thresholdInput.min = 0; 
+            const thresholdWrapper = createWrapper('Threshold %', thresholdInput);
+            thresholdWrapper.style.display = 'none'; 
+            rowContainer.appendChild(thresholdWrapper);
+
+            // Field B: Number Format (For Difference Reconciliation) - CHANGED LABEL
+            const convertSelect = document.createElement('select');
+            convertSelect.className = 'convert-select form-control';
+            convertSelect.innerHTML = `
+                <option value="">Select Option</option>
+                <option value="decimal">Decimal</option>
+                <option value="roundoff">Round Off</option>
+            `;
+            const convertWrapper = createWrapper('Number Format', convertSelect); // New Label
+            convertWrapper.style.display = 'none';
+            rowContainer.appendChild(convertWrapper);
+
+            // Field C1: Difference Value (For Difference Reconciliation) - NEW
+            const diffValueInput = document.createElement('input');
+            diffValueInput.type = 'number'; 
+            diffValueInput.step = 'any';
+            diffValueInput.placeholder = 'e.g. 5'; 
+            diffValueInput.className = 'diff-value-input form-control';
+            
+            const diffValueWrapper = createWrapper('Difference Amount', diffValueInput); // New Field
+            diffValueWrapper.style.display = 'none';
+            rowContainer.appendChild(diffValueWrapper);
+
+            // Field C2: Difference Logic (For Difference Reconciliation) - CHANGED LABEL
+            const diffRangeSelect = document.createElement('select');
+            diffRangeSelect.className = 'diff-range-select form-control';
+            diffRangeSelect.innerHTML = `
+                <option value="">Select Range Logic</option>
+                <option value="positive">+ Difference Range</option>
+                <option value="negative">- Difference Range</option>
+                <option value="both">Both (+ and -)</option>
+            `;
+            const diffRangeWrapper = createWrapper('Difference', diffRangeSelect); // New Label
+            diffRangeWrapper.style.display = 'none';
+            rowContainer.appendChild(diffRangeWrapper);
+
+
+            // Input: Number of Cols
+            const numberInput = document.createElement('input');
+            numberInput.type = 'number'; numberInput.placeholder = 'Qty'; numberInput.className = 'number-input form-control';
+            numberInput.min = 0; 
+            rowContainer.appendChild(createWrapper('NO. of Columns to Match', numberInput, 'col-md-3'));
+
+            // Dropdown Logic
+            dropdown.addEventListener('change', function () {
+                // Reset all optional fields to hidden
+                thresholdWrapper.style.display = 'none';
+                convertWrapper.style.display = 'none';
+                diffValueWrapper.style.display = 'none';
+                diffRangeWrapper.style.display = 'none';
+                
+                // Show specific fields based on selection
+                if (dropdown.value === 'namematch') {
+                    thresholdWrapper.style.display = 'block';
+                } else if (dropdown.value === 'diffReconcile') {
+                    convertWrapper.style.display = 'block';
+                    diffValueWrapper.style.display = 'block'; // Show Value
+                    diffRangeWrapper.style.display = 'block'; // Show Range Logic
+                }
+            });
+
+            // Output Cols Button
+            const outputColsStorage = document.createElement('input');
+            outputColsStorage.type = 'hidden';
+            outputColsStorage.className = 'output-cols-storage';
+            outputColsStorage.value = ''; 
+
+            const addColsBtn = document.createElement('button');
+            addColsBtn.type = 'button';
+            addColsBtn.innerHTML = '<i class="fas fa-table mr-1"></i> Select Output Cols';
+            addColsBtn.className = 'add-cols-button btn btn-outline-secondary btn-block';
+            addColsBtn.style.marginTop = '28px'; 
+            addColsBtn.addEventListener('click', function() {
+                openColumnModal(this);
+            });
+            
+            const inlineBtnWrapper = createWrapper('', addColsBtn, 'col-md-12'); 
+            
+            rowContainer.appendChild(inlineBtnWrapper);
+            inlineBtnWrapper.appendChild(outputColsStorage);
+
+            ruleBody.appendChild(rowContainer);
+
+            // --- DRAG & DROP AREA ---
+            const dragDropContainer = document.createElement('div');
+            dragDropContainer.className = 'drag-drop-container'; dragDropContainer.style.display = 'none';
+            
+            const columnListContainer = document.createElement('div');
+            columnListContainer.className = 'column-list-container';
+            
+            const file1DragColumns = document.createElement('div');
+            file1DragColumns.className = 'file1-drag-columns'; file1DragColumns.innerHTML = '<h4><i class="fas fa-file-excel mr-1"></i>File 1</h4>';
+            
+            const file2DragColumns = document.createElement('div');
+            file2DragColumns.className = 'file2-drag-columns'; file2DragColumns.innerHTML = '<h4><i class="fas fa-file-excel mr-1"></i>File 2</h4>';
+
+            numberInput.addEventListener('change', function() {
+                const num = parseInt(this.value);
+                // Clear existing
+                while (file1DragColumns.childNodes.length > 1) file1DragColumns.removeChild(file1DragColumns.lastChild);
+                while (file2DragColumns.childNodes.length > 1) file2DragColumns.removeChild(file2DragColumns.lastChild);
+
+                if (num > 0) {
+                    for (let i = 0; i < num; i++) {
+                        const f1 = document.createElement('li'); f1.className = 'drag-field'; f1.textContent = `Drop Column ${i+1} Here`; setupDragField(f1); file1DragColumns.appendChild(f1);
+                        const f2 = document.createElement('li'); f2.className = 'drag-field'; f2.textContent = `Drop Column ${i+1} Here`; setupDragField(f2); file2DragColumns.appendChild(f2);
+                    }
+                    dragDropContainer.style.display = 'block';
+                } else { dragDropContainer.style.display = 'none'; }
+            });
+
+            columnListContainer.appendChild(file1DragColumns);
+            columnListContainer.appendChild(file2DragColumns);
+            dragDropContainer.appendChild(columnListContainer);
+            
+            ruleBody.appendChild(dragDropContainer);
+            newInputs.appendChild(ruleBody);
+            inputContainer.appendChild(newInputs);
+        });
+
+        // --- PROCESS & DOWNLOAD HANDLER ---
+        processDataButton.addEventListener('click', function() {
+            if (!uploadedFile1Path || !uploadedFile2Path) {
+                alert('Error: File paths missing. Please re-upload.'); 
+                return;
+            }
+
+            const inputSections = document.querySelectorAll('.new-inputs');
+            if (inputSections.length === 0) { 
+                alert('Please add at least one rule.'); 
+                return; 
+            }
+
+            // 2. VALIDATION LOGIC
+            let allValid = true;
+            let firstErrorField = null; 
+
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+            inputSections.forEach((section, index) => {
+                const dropdown = section.querySelector('.dropdown-select');
+                const numInput = section.querySelector('.number-input');
+                const sheetInput = section.querySelector('.sheet-name-input');
+                const headerInput = section.querySelector('.header-name-input');
+                
+                // Specific fields
+                const thresholdInput = section.querySelector('.threshold-input');
+                const convertInput = section.querySelector('.convert-select');
+                const diffValueInput = section.querySelector('.diff-value-input');
+                const diffRangeInput = section.querySelector('.diff-range-select');
+                
+                const markError = (element) => {
+                    element.classList.add('is-invalid'); 
+                    allValid = false;
+                    if (!firstErrorField) firstErrorField = element;
+                    
+                    const ruleBody = section.querySelector('.rule-body');
+                    const minimizeBtn = section.querySelector('.rule-header button i');
+                    if(ruleBody.classList.contains('collapsed')) {
+                        ruleBody.classList.remove('collapsed');
+                        if(minimizeBtn) {
+                            minimizeBtn.classList.remove('fa-chevron-down');
+                            minimizeBtn.classList.add('fa-chevron-up');
+                        }
+                    }
+                };
+
+                if (!dropdown.value) markError(dropdown);
+                if (!numInput.value || parseInt(numInput.value) < 1) markError(numInput);
+                if (!sheetInput.value.trim()) markError(sheetInput);
+                if (!headerInput.value.trim()) markError(headerInput);
+                
+                // Conditional Validation
+                if (dropdown.value === 'namematch') {
+                    if (!thresholdInput.value) markError(thresholdInput);
+                } else if (dropdown.value === 'diffReconcile') {
+                    if (!convertInput.value) markError(convertInput);
+                    if (!diffValueInput.value) markError(diffValueInput); // Validate Number
+                    if (!diffRangeInput.value) markError(diffRangeInput);
+                }
+            });
+
+            if (!allValid) {
+                flashMessage.className = 'flash-message alert-danger text-danger bg-light border-danger';
+                flashMessage.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Please fill in all mandatory fields (highlighted in red).';
+                flashMessage.style.display = 'flex';
+                
+                if (firstErrorField) firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return; 
+            }
+
+            // 3. Prepare Data
+            processDataButton.disabled = true;
+            processDataButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Processing...';
+            
+            flashMessage.className = 'flash-message alert-info text-info bg-light border-info';
+            flashMessage.innerHTML = '<i class="fas fa-cog fa-spin mr-2"></i> Processing data. Download will start automatically.';
+            flashMessage.style.display = 'flex';
+
+            const processedData = [];
+            inputSections.forEach(section => {
+                const f1Data = [...section.querySelector('.file1-drag-columns').querySelectorAll('.drag-field')].map(li => li.classList.contains('populated') ? li.textContent : '');
+                const f2Data = [...section.querySelector('.file2-drag-columns').querySelectorAll('.drag-field')].map(li => li.classList.contains('populated') ? li.textContent : '');
+                
+                const outputColsInput = section.querySelector('.output-cols-storage');
+                const outputColumns = outputColsInput.value ? JSON.parse(outputColsInput.value) : [];
+
+                processedData.push({
+                    selectedOption: section.querySelector('.dropdown-select').value,
+                    numberOfFields: section.querySelector('.number-input').value,
+                    sheetName: section.querySelector('.sheet-name-input').value,
+                    headerName: section.querySelector('.header-name-input').value,
+                    
+                    // Optional Fields
+                    threshold: section.querySelector('.threshold-input').value, 
+                    convertType: section.querySelector('.convert-select').value, 
+                    diffValue: section.querySelector('.diff-value-input').value, // Send new number
+                    diffRange: section.querySelector('.diff-range-select').value, 
+                    
+                    file1Data: f1Data, 
+                    file2Data: f2Data,
+                    outputColumns: outputColumns 
+                });
+            });
+
+            const fullPayload = {
+                rules: processedData,
+                file1_path: uploadedFile1Path,
+                file2_path: uploadedFile2Path,
+                original_file1: uploadedFile1Name, 
+                original_file2: uploadedFile2Name  
+            };
+
+            const formData = new FormData();
+            formData.append('processedData', JSON.stringify(fullPayload));
+            
+            const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+            const csrfToken = csrfInput ? csrfInput.value : ''; 
+            formData.append('csrfmiddlewaretoken', csrfToken);
+
+            fetch("{% url 'process_data' %}", { method: 'POST', body: formData })
+            .then(response => {
+                if (!response.ok) return response.json().then(err => { throw new Error(err.message || 'Error'); });
+                
+                const disposition = response.headers.get('Content-Disposition');
+                let filename = 'Reconciliation_Output.zip';
+                if (disposition && disposition.match(/filename="(.+)"/)) {
+                    filename = disposition.match(/filename="(.+)"/)[1];
+                }
+                return response.blob().then(blob => ({ blob, filename }));
+            })
+            .then(({ blob, filename }) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+
+                flashMessage.className = 'flash-message alert-success text-success bg-light border-success';
+                flashMessage.innerHTML = '<i class="fas fa-check-double mr-2"></i> Success! Download started. Resetting...';
+
+                setTimeout(() => {
+                    window.location.reload();
+                    processDataButton.innerHTML = '<i class="fas fa-play mr-1"></i> Execute Reconciliation';
+                }, 2000);
+            })
+            .catch(error => {
+                flashMessage.className = 'flash-message alert-danger text-danger bg-light border-danger';
+                flashMessage.innerHTML = `<i class="fas fa-times-circle mr-2"></i> Failed: ${error.message}`;
+                processDataButton.disabled = false;
+                processDataButton.innerHTML = '<i class="fas fa-play mr-1"></i> Execute Reconciliation';
+            });
+        });
+
+        document.getElementById('clear-button').addEventListener('click', function () {
+            window.location.reload();
+        });
+    });
+</script>
+
+{% endblock %}
