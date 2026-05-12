@@ -2409,7 +2409,7 @@ def process_data(request):
         # Light Green Color
         fill = PatternFill(start_color="90EE90", end_color="90EE90", fill_type="solid")
         
-        offset = 4 # Row 1 is header, so data starts at Row 2 (Index 0)
+        offset = 3 # Row 1 is header, so data starts at Row 2 (Index 0)
         
         for idx in matched_indices:
             row_num = idx + offset
